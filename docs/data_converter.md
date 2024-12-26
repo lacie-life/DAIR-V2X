@@ -6,6 +6,9 @@ We provide the tools to process the DAIR-V2X dataset, such as convert the datase
 `tools/dataset_converter/dair2kitti.py` can convert the DAIR-V2X dataset into Kitti format.
     
        python tools/dataset_converter/dair2kitti.py [--source-root ${SOURCE_ROOT}] [--target-root ${TARGET_ROOT}] [--split-path ${SPLIT_PATH}] [--label-type ${LABEL_TYPE}] [--sensor-view ${SENSOR_VIEW}] [--no-classmerge ${NO_CLASSMERGE}] 
+
+
+       python tools/dataset_converter/dair2kitti.py [--source-root ${SOURCE_ROOT}] [--target-root ${TARGET_ROOT}] [--split-path ${SPLIT_PATH}] [--label-type ${LABEL_TYPE}] [--sensor-view ${SENSOR_VIEW}] [--no-classmerge ${NO_CLASSMERGE}] 
     
 ### Pointcloud Transformation
 

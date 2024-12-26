@@ -82,6 +82,7 @@ def plot_rect3d_on_img(img, num_rects, rect_corners, color=(0, 255, 0), thicknes
     line_indices = ((0, 1), (0, 3), (0, 4), (1, 2), (1, 5), (3, 2), (3, 7), (4, 5), (4, 7), (2, 6), (5, 6), (6, 7))
     for i in range(num_rects):
         corners = rect_corners[i].astype(np.int)
+        # print(corners.shape)
 
         for start, end in line_indices:
             radius = 5
@@ -98,6 +99,24 @@ def plot_rect3d_on_img(img, num_rects, rect_corners, color=(0, 255, 0), thicknes
                 thickness,
                 cv2.LINE_AA,
             )
+
+    return img.astype(np.uint8)
+
+def plot_pc_on_img(img, pts, color=(255, 255, 0), thickness=1):
+    """Plot the point cloud on 2D images.
+
+    Args:
+        img (numpy.array): The numpy array of image.
+        points (numpy.array): Coordinates of the points. Should be in the shape of [num_points, 2].
+        color (tuple[int]): The color to draw bboxes. Default: (0, 255, 0).
+        thickness (int, optional): The thickness of bboxes. Default: 1.
+    """
+
+    # print(pts.shape)
+    for i in range(len(pts)):
+        pts_ = pts[i].astype(np.int)
+
+        cv2.circle(img, (pts_[0, 0], pts_[0, 1]), 1, color, thickness)
 
     return img.astype(np.uint8)
 
@@ -202,6 +221,9 @@ def get_cam_8_points(labels, calib_lidar2cam_path):
         bottom_center = [x, y, z]
         obj_size = [l, w, h]
         lidar_8_points = compute_box_3d(obj_size, bottom_center, yaw_lidar)
+
+        # print(lidar_8_points.shape)
+
         # lidar_8_points = np.matrix([[x - l / 2, y + w / 2, z + h],
         #                             [x + l / 2, y + w / 2, z + h],
         #                             [x + l / 2, y + w / 2, z],
@@ -214,6 +236,53 @@ def get_cam_8_points(labels, calib_lidar2cam_path):
         camera_8_points_list.append(camera_8_points.T)
 
     return camera_8_points_list
+
+def get_pc_in_camera(pts, calib_lidar2cam_path):
+    """Plot the boundaries of 3D BBox with label on 2D image.
+
+        Args:
+            label: h, w, l, x, y, z, rotaion
+            image_path: Path of image to be visualized
+            calib_lidar2cam_path: Extrinsic of lidar2camera
+            calib_intrinsic_path: Intrinsic of camera
+            save_path: Save path for visualized images
+
+    ..code - block:: none
+
+
+                         front z
+                              /
+                             /
+               (x0, y0, z1) + -----------  + (x1, y0, z1)
+                           /|            / |
+                          / |           /  |
+            (x0, y0, z0) + ----------- +   + (x1, y1, z1)
+                         |  /      .   |  /
+                         | / oriign    | /
+            (x0, y1, z0) + ----------- + -------> x right
+                         |             (x1, y1, z0)
+                         |
+                         v
+                    down y
+
+    """
+    calib_lidar2cam = read_json(calib_lidar2cam_path)
+    r_velo2cam, t_velo2cam = get_lidar2cam(calib_lidar2cam)
+    pc_in_cam_list = []
+    pc_in_lidar = []
+
+    for pt in pts:
+        # print(pt)
+        x, y, z = pt
+        point = np.array([x, y, z]).reshape(1, 3)
+        # print(point.shape)
+
+        camera_points = r_velo2cam * np.matrix(point).T + t_velo2cam
+        pc_in_cam_list.append(camera_points.T)
+
+    print(pc_in_cam_list[0].shape)
+
+    return pc_in_cam_list
 
 
 def vis_label_in_img(camera_8_points_list, img_path, path_camera_intrinsic, save_path):
@@ -232,8 +301,61 @@ def vis_label_in_img(camera_8_points_list, img_path, path_camera_intrinsic, save
     uv_origin = points_cam2img(cam8points, calib_intrinsic)
     uv_origin = (uv_origin - 1).round()
 
-    plot_rect3d_on_img(img, num_bbox, uv_origin)
-    cv2.imwrite(os.path.join(save_path, index + ".png"), img)
-    print(index)
+    try: 
+        plot_rect3d_on_img(img, num_bbox, uv_origin)
+        cv2.imwrite(os.path.join(save_path, index + ".png"), img)
+        print(index)
+    except Exception as e:
+        print(e)
+        print(f"Missing in {index}")
+
+    return True
+
+def vis_pc_in_img(pc_points, camera_8_points_list, img_path, path_camera_intrinsic, save_path):
+    # dirs_camera_intrisinc = os.listdir(path_camera_intrinsic)
+    # # path_list_camera_intrisinc = get_files_path(path_camera_intrinsic, '.json')
+    # # path_list_camera_intrinsic.sort()
+    #
+    # for frame in dirs_camera_intrinsic:
+    
+    index = img_path.split("/")[-1].split(".")[0]
+    calib_intrinsic = get_cam_calib_intrinsic(path_camera_intrinsic)
+    img = get_rgb(img_path)
+
+    cam8points = np.array(camera_8_points_list)
+    num_bbox = cam8points.shape[0]
+
+    uv_origin = points_cam2img(cam8points, calib_intrinsic)
+    uv_origin = (uv_origin - 1).round()
+
+    pc_points = np.array(pc_points)
+    num_pc = pc_points.shape[0]
+    pc_points = points_cam2img(pc_points, calib_intrinsic)
+    pc_points = (pc_points - 1).round()
+
+    print("Check the shape of the points")
+    print(pc_points.shape)
+    print(uv_origin.shape)
+
+
+    # plot_rect3d_on_img(img, num_bbox, uv_origin)
+    # cv2.imwrite(os.path.join(save_path, index + ".png"), img)
+    # plot_pc_on_img(img, pc_points)
+    # cv2.imwrite(os.path.join(save_path, index + "_projected.png"), img)
+    # print(index)
+
+
+    try: 
+        plot_rect3d_on_img(img, num_bbox, uv_origin)
+
+        cv2.imwrite(os.path.join(save_path, index + ".png"), img)
+
+        plot_pc_on_img(img, pc_points)
+
+        cv2.imwrite(os.path.join(save_path, index + "_projected.png"), img)
+        print(index)
+    except Exception as e:
+        print(e)
+        print(f"Missing in {index}")
 
     return True
