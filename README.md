@@ -2,6 +2,11 @@
   
 # DAIR-V2X and OpenDAIRV2X: Towards General and Real-World Cooperative Autonomous Driving
 
+
+https://github.com/open-mmlab/mmcv/issues/3071
+
+https://github.com/open-mmlab/mmdetection3d/issues/513
+
 </div>
 
 <h3 align="center">

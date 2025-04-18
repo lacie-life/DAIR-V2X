@@ -21,7 +21,7 @@ parser.add_argument(
     help="Json file to split the data into training/validation/testing.",
 )
 parser.add_argument("--label-type", type=str, default="lidar", help="label type from ['lidar', 'camera']")
-parser.add_argument("--sensor-view", type=str, default="vehicle", help="Sensor view from ['infrastructure', 'vehicle']")
+parser.add_argument("--sensor-view", type=str, default="infrastructure", help="Sensor view from ['infrastructure', 'vehicle']")
 parser.add_argument(
     "--no-classmerge",
     action="store_true",

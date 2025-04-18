@@ -1,5 +1,5 @@
 dataset_type = "KittiDataset"
-data_root = "../../../data/DAIR-V2X/single-infrastructure-side/"
+data_root = "/mnt/Data-2/Datasets/DAIR-V2X-Public/DAIR-V2X-I/DAIR-V2X-I-Kitti-v1"
 class_names = ["Pedestrian", "Cyclist", "Car"]
 point_cloud_range = [0, -39.68, -3, 69.12, 39.68, 1]
 voxel_size = [0.16, 0.16, 4]

@@ -42,7 +42,13 @@ def rewrite_txt(path):
         find_str1 = "Truck"
         find_str2 = "Van"
         find_str3 = "Bus"
+        find_str4 = "Motorcyclist"
+        find_str5 = "Trafficcone"
+        find_str6 = "Barrowlist"
+
         replace_str = "Car"
+        replace_str2 = "Cyclist"
+        replace_str3 = "DONTCARE"
         new_data = ""
         for line in data:
             if find_str1 in line:
@@ -51,6 +57,12 @@ def rewrite_txt(path):
                 line = line.replace(find_str2, replace_str)
             if find_str3 in line:
                 line = line.replace(find_str3, replace_str)
+            if find_str4 in line:
+                line = line.replace(find_str4, replace_str2)
+            if find_str5 in line:
+                line = line.replace(find_str5, replace_str3)
+            if find_str6 in line:
+                line = line.replace(find_str6, replace_str3)
             new_data = new_data + line
     os.remove(path)
     f_new = open(path, "w")
